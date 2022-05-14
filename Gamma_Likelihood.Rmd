@@ -1,0 +1,62 @@
+---
+title: "Gamma Likelihood Plot"
+author: "Jonathan Luu"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Method
+The gamma log likelihood equation is defined by the function loglik.gamma. For this problem, alpha is known and set to 3, without loss of generality. As beta is unknown, a sequence of beta values (length=19000) is generated and used to estimate the maximum likelihood value.  
+
+```{r}
+set.seed(123)
+alpha <- 3
+n <- 2000
+
+# Gamma log likelihood equation
+# Alpha is known = 3
+# Beta is the unknown parameter
+loglik.gamma <- function(beta, alpha, x){
+  logl<-sum(dgamma(x,alpha,scale=beta,log=TRUE))
+  return(logl)
+}
+
+runAndPlot<- function(x){
+  # Experimental iteration
+  beta_experiment<-seq(1,20, by=0.001)
+  beta_mle<-sapply(beta_experiment, loglik.gamma, alpha=alpha, x=x)
+  paired<-data.frame(beta_experiment, beta_mle)
+  ans<-paired[which.max(paired$beta_mle),]
+  
+  # Plot the paired beta and mle values
+  plot(beta_experiment,beta_mle,type='l',xlab=expression(beta),
+       ylab=expression(L( ~ beta  ,x)), main="Beta_hat x Log likelihood for Gamma Distribution")
+  abline(v=ans$beta_experiment,col="red",lty=2)
+  abline(h=ans$beta_mle,col="red",lty=2)
+  
+  print(ans)
+}
+```
+
+\newpage
+For the first dataset, the following parameters were used: n=2000, alpha=3, beta=3
+```{r}
+# generate gamma(3,3) data
+x <- rgamma(n, alpha, scale=3)
+runAndPlot(x)
+```
+
+The estimated value of beta is 2.943, which is very close to the actual beta value of 3.
+
+\newpage
+For the second dataset, the following parameters were used: n=2000, alpha=3, beta=12
+```{r}
+# generate gamma(3,12) data
+y <- rgamma(n, alpha, scale=12)
+runAndPlot(y)
+```
+
+The estimated value of beta is 11.922, which is very close to the actual beta value of 12.

@@ -1,0 +1,47 @@
+---
+title: "HW9 Q7"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part A - Correlation between LSAT and GPA
+```{r}
+#Given data
+LSAT<-c(576, 580, 653, 635, 555, 575, 558, 661, 545, 578, 651, 572, 666, 605, 594)
+GPA<-c(3.39, 3.07, 3.12, 3.30, 3.00, 2.74, 2.81, 3.43, 2.76, 3.03, 3.36, 2.88, 3.44, 3.13, 2.96)
+pairs<-data.frame(LSAT, GPA)
+
+#Correlation between LSAT and GPA
+print(cor(pairs[1], pairs[2]))
+```
+
+## Part B - Standard deviation of correlation using non-parametricbootstrap
+```{r}
+calculateStat<-function(data, indices){
+  cor(pairs[indices,1], pairs[indices,2])
+}
+
+std<-boot::boot(data=pairs, calculateStat, R=1000)
+print(std)
+plot(std)
+```
+
+The standard deviation of the sample is around 0.13.
+
+## Part C - Standard deviation of correlation using parametric bootstrap
+
+```{r}
+temp<-0.7782
+for (j in 1:1000) {
+  y<-rnorm(15,mean=3.09,sd=0.24)
+  x<-rnorm(15,mean=600.6+135.62*(y-3.09),sd=26.58)
+
+  temp<-c(temp,cor(x,y))
+}
+sd(temp)
+```
+
+The standard deviation of the parametric sample is around 0.11, which is lower than 0.13.

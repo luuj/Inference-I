@@ -1,0 +1,78 @@
+---
+title: "PM522B HW1"
+author: "Jonathan Luu"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 3
+For X1, X2, ..., Xn ~ Unif[0, 1], write a function in R to draw random samples of size 15, and take the maximum of each sample.
+
+```{r}
+#Set seed and global variables
+set.seed(120)
+NumberOfSims<-10000
+NumberOfSamples<-15
+
+#Storage container for maximum values
+StorageVector<-double(NumberOfSims)
+for (i in 1:NumberOfSims){
+  #Draw 15 random samples, take the maximum, and store it
+  StorageVector[i]=max(runif(NumberOfSamples,0 ,1))
+}
+
+#Graph the distribution
+hist(StorageVector, xlab="Maximum values from each sample", 
+     main="Histogram of maximum values from each sample")
+```
+
+## Question 4
+Using kids.RData posted on Blackboard (this is the CHS data used in PM511a), construct Q-Q plots in R comparing the wt variable (weight in lbs) to the normal, log-normal, gamma, and Weibull distributions. Do not use a package to create these plots. Label all axes accordingly. To what distribution do the data follow most closely?
+
+```{r}
+load("C:\\Users\\jluu\\Dropbox\\School\\PM522B\\HW1\\kids.RData")
+
+#Get kids dataset quantiles
+kids_quantiles<-quantile(kids$wt, probs=seq(0,1,1/length(kids$wt)))
+
+#Generate normal quantile distribution
+normal_quantiles<-qnorm(seq(0,1,1/length(kids$wt)), mean(kids$wt), sd(kids$wt))
+plot(normal_quantiles, kids_quantiles, xlab="Normal quantiles", ylab="Sample quantiles",
+     main="Normal QQ plot")
+abline(0,1)
+```
+
+\newpage
+```{r}
+#Generate lognormal quantile distribution
+lognormal_quantiles<-qlnorm(seq(0,1,1/length(kids$wt)), mean(log(kids$wt)), sd(log(kids$wt)))
+plot(lognormal_quantiles, kids_quantiles, xlab="Lognormal quantiles", ylab="Sample quantiles",
+     main="Lognormal QQ plot")
+abline(0,1)
+```
+
+\newpage
+```{r}
+#Generate gamma quantile distribution
+alpha=(mean(kids$wt)^2)/var(kids$wt)
+beta=var(kids$wt)/mean(kids$wt)
+gamma_quantiles<-qgamma(seq(0,1,1/length(kids$wt)), alpha, beta)
+plot(gamma_quantiles, kids_quantiles, xlab="Gamma quantiles", ylab="Sample quantiles",
+      main="Gamma QQ plot")
+abline(0,1)
+```
+
+\newpage
+```{r}
+#Generate weibull quantile distribution
+weibull_quantiles<-qweibull(seq(0,1,1/length(kids$wt)), alpha, beta)
+plot(weibull_quantiles, kids_quantiles, xlab="Weibull quantiles", ylab="Sample quantiles",
+      main="Weibull QQ plot")
+abline(0,1)
+```
+
+Out of these four QQ plots, the lognormal QQ plot fits the best.
+

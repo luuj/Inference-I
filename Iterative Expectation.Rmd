@@ -1,0 +1,95 @@
+---
+title: "Question 2 - HW4"
+author: "Jonathan Luu"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Iterative simulation
+X below is a random sample of data with true theta=5 and scale=1.
+```{r}
+X <- c(6.40, 5.40, 4.30, 3.70, 4.67, 4.20, 5.74, 6.47, 6.19, 1.60, 5.30, 4.97, 5.29, 4.79,
+       3.91, 4.78, 5.54, 4.90, 6.38, 6.13, 3.40, 4.69, 5.05, 5.46, 1.82, 2.24, 3.83, 4.46,
+       7.66, 5.28, 2.69, 3.27, 5.37, 4.17, 6.42, 4.69, 8.43, 2.97, 8.26, 6.03)
+
+scale<-1
+```
+
+To find the MLE of theta, theta values from 0.01 to 20 in intervals of 0.001 were checked by plugging each value into the log likelihood logistic function. The value with the lowest MLE value (or highest if negative MLE values) is considered the MLE.
+
+```{r}
+
+#Simulate logistic regression with one beta parameter
+loglik.logistic <- function(location, scale, x){
+  logl<-sum(dlogis(x,location,scale,log=TRUE))
+  return(-logl)
+}
+
+#Finds the MLE by checking plugging in various values of theta into loglik.logistic
+beta_experiment<-seq(0.01,20, by=0.001)
+beta_mle<-sapply(beta_experiment, loglik.logistic, scale=scale, x=X)
+paired<-data.frame(beta_experiment, beta_mle)
+print(ans<-paired[which.min(paired$beta_mle),])
+```
+
+This method determined that the MLE was 4.928. 
+
+\newpage
+## Optim method
+```{r warning=FALSE}
+#Optim method
+optim.result<-optim(6, loglik.logistic, x=X, scale=scale)
+print(optim.result$par)
+```
+
+The optim method gave a similar MLE of 4.928.
+
+\newpage
+## Newton-Raphson method
+
+```{r warning=FALSE}
+
+library(MASS) # for generalized inverse ginv
+
+newtonsMethod <- function(d, d2, theta0, tol=1e-08, maxiter= 1000) {
+  theta <- theta0
+  t<-0
+  
+  repeat{
+    t<-t+1
+    theta.hat <- theta - ginv(d2(theta)) %*% d(theta)
+    if(mean(abs(theta.hat - theta)) < tol | t >= maxiter) {
+      if(t >= maxiter) warning("Maximum number of iterations reached!")
+      break
+    }
+    cat("Iteration:", t, ", theta.hat =", theta, "\n")
+    theta<-theta.hat
+  }  
+  cat("Iteration:", t, ", theta.hat =", theta, "\n")
+  out<-list(solution=theta.hat, n.iter=t, value=abs(theta.hat - theta))
+  return(out)
+}
+
+
+# Logistic MLE
+# Random sample of data with true theta=5
+#X<- rlogis(40, location = 5, scale = 1)
+X <- c(6.40, 5.40, 4.30, 3.70, 4.67, 4.20, 5.74, 6.47, 6.19, 1.60, 5.30, 4.97, 5.29, 4.79,
+       3.91, 4.78, 5.54, 4.90, 6.38, 6.13, 3.40, 4.69, 5.05, 5.46, 1.82, 2.24, 3.83, 4.46,
+       7.66, 5.28, 2.69, 3.27, 5.37, 4.17, 6.42, 4.69, 8.43, 2.97, 8.26, 6.03)
+
+dl <- function(theta) {
+  length(X) - 2 * sum( exp(-(X - theta)) / (1 + exp(-(X - theta))))
+}
+ddl <- function(theta){
+  -2 * sum( exp(-(X - theta)) / (1 + exp(-(X - theta)))**2 )
+}
+
+newton.result<-newtonsMethod(dl,ddl,6)
+print(newton.result$solution)
+```
+
+The Newton-Raphson method also gives the same MLE of 4.928.

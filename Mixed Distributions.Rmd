@@ -1,0 +1,67 @@
+---
+title: "Question 4 - HW4"
+author: "Jonathan Luu"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Creating the mixed distribution
+Distribution 1 is a normal distribution with mean 9 and standard deviation 2. Rnorm will be used to generate 80 different values for distribution 1.
+
+Distribution 2 is a normal distribution with mean 3 and standard deviation 1.5. Rnorm will be used to generate 32 different values for distribution 2.
+
+```{r warning=FALSE}
+library(mclust)
+set.seed(123)
+
+#Gaussian distribution 1 parameters
+mean1<-9
+sd1<-2
+size1<-80
+
+#Gaussian distribution 2 parameters
+mean2<-3
+sd2<-1.5
+size2<-32
+
+#Generate the mixed distribution
+group1<-rnorm(size1, mean1, sd1)
+group2<-rnorm(size2, mean2, sd2)
+mixed_groups<-c(group1, group2)
+```
+
+\newpage
+##Plotting the mixed distribution
+The distribution for each group is plotted below.
+
+```{r}
+#Plot the distribution
+group1.plot<-data.frame(Group="Group1", Value=group1)
+group2.plot<-data.frame(Group="Group2", Value=group2)
+mixed.plot<-rbind(group1.plot, group2.plot)
+boxplot(Value~Group, data=mixed.plot, 
+        main="Mixed Gaussian Distribution Boxplot\nGroup1=N(9,2), Group2=N(3,1.5)", ylab="Value")
+```
+
+
+\newpage
+##Running MClust
+```{r}
+#Run mclust
+fit <- Mclust(mixed_groups)
+summary(fit)
+print(fit$parameters)
+```
+
+MClust gives a close estimate of the group size with 35 and 77, while the real group sizes are 32 and 80. It gives an estimated mean of 3.45 and standard deviation of 1 for group2, while the actual values are 3 and 1.5. It gives an estimated mean of 9.19 and standard deviation of 2 for group1, while the actual values are 9 and 2.
+
+\newpage
+```{r}
+#Plot the density
+plot(densityMclust(mixed_groups), what="density")
+```
+
+MClust gives fairly accurate estimates for both group size and estimated parameters. The density plot also looks accurate with a majority of values on the right side of the graph (group1 with n=80), and the rest of the values on the left side of the graph (group2 with n=32). MClust works by applying the EM algorithm. It calculates the expected value of the log likelihood of the observed values, incorporating both the observed values and the latent group values for groups 1 and 2. It then attempts to maximize this expected value by initially starting with a random value and then iterating by maximizing the following expected value using the previous. The expectation and maximization steps are repeated until the difference between the likelihoods of adjacent values falls below a tolerance level. 
